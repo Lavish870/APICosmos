@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import LiquidNavbar from "@/components/LiquidNavbar";
 import Link from "next/link";
@@ -102,7 +102,7 @@ const sampleApis = [
     },
 ];
 
-export default function ExplorePage() {
+function ExploreContent() {
     const searchParams = useSearchParams();
     const [search, setSearch] = useState("");
     const [category, setCategory] = useState("All Categories");
@@ -412,5 +412,19 @@ export default function ExplorePage() {
 
             </main>
         </div>
+    );
+}
+
+export default function ExplorePage() {
+    return (
+        <Suspense
+            fallback={
+                <div className="min-h-screen flex items-center justify-center">
+                    Loading Explore...
+                </div>
+            }
+        >
+            <ExploreContent />
+        </Suspense>
     );
 }

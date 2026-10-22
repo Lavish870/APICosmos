@@ -1,12 +1,12 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import LiquidNavbar from "@/components/LiquidNavbar";
 
-export default function CardsPage() {
+function CardsContent() {
   const searchParams = useSearchParams();
   const [api, setApi] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -290,5 +290,18 @@ export default function CardsPage() {
         )}
       </main>
     </div>
+  );
+}
+export default function CardsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          Loading API details...
+        </div>
+      }
+    >
+      <CardsContent />
+    </Suspense>
   );
 }
