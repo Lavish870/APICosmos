@@ -352,9 +352,13 @@ export default function LiquidNavbar() {
                                 Add Your API <span>＋</span>
                             </Link>
 
-                            <Link href="/dashboard" onClick={closeMenu}>
-                                My Dashboard <span>↗</span>
-                            </Link>
+                            <Link
+  href={user?.role === "admin" ? "/admin" : "/dashboard"}
+  onClick={closeMenu}
+>
+  {user?.role === "admin" ? "Admin Dashboard" : "My Dashboard"}
+  <span>↗</span>
+</Link>
 
                             <Link href="/profile" onClick={closeMenu}>
                                 Profile <span>↗</span>
@@ -442,16 +446,16 @@ export default function LiquidNavbar() {
                                 </Link>
 
                                 <Link
-                                    href="/dashboard"
-                                    onClick={() => setProfileOpen(false)}
-                                >
+  href={user?.role === "admin" ? "/admin" : "/dashboard"}
+  onClick={() => setProfileOpen(false)}
+>
                                     <Icon size={17}>
                                         <rect x="3" y="3" width="8" height="8" rx="1" />
                                         <rect x="13" y="3" width="8" height="5" rx="1" />
                                         <rect x="13" y="10" width="8" height="11" rx="1" />
                                         <rect x="3" y="13" width="8" height="8" rx="1" />
                                     </Icon>
-                                    My Dashboard
+                                    {user?.role === "admin" ? "Admin Dashboard" : "My Dashboard"}
                                 </Link>
 
                                 <Link

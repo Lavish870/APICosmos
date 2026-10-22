@@ -109,6 +109,38 @@ export default function ExplorePage() {
     const [apis, setApis] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [savedApis, setSavedApis] = useState([]);
+    const [savedReady, setSavedReady] = useState(false);
+
+    useEffect(() => {
+        try {
+            const saved = JSON.parse(
+                localStorage.getItem("apicosmos-saved-apis") || "[]"
+            );
+
+            setSavedApis(Array.isArray(saved) ? saved : []);
+        } catch {
+            setSavedApis([]);
+        }
+
+        setSavedReady(true);
+    }, []);
+
+    function toggleSavedApi(api) {
+        const alreadySaved = savedApis.some(
+            (item) => item.name === api.name
+        );
+
+        const updated = alreadySaved
+            ? savedApis.filter((item) => item.name !== api.name)
+            : [...savedApis, api];
+
+        setSavedApis(updated);
+        localStorage.setItem(
+            "apicosmos-saved-apis",
+            JSON.stringify(updated)
+        );
+    }
 
     useEffect(() => {
         async function fetchApis() {
@@ -273,47 +305,87 @@ export default function ExplorePage() {
                     </div>
                 ) : filteredApis.length > 0 ? (
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                        {filteredApis.map((api) => (
-                            <Link
-                                key={api.name}
-                                href={`/cards?name=${encodeURIComponent(api.name)}`}
-                                className="flex min-h-64 flex-col rounded-2xl border border-(--border) bg-(--surface) p-5 transition duration-200 hover:-translate-y-1 hover:border-(--accent)"
-                            >
-                                <div className="mb-5 flex items-start justify-between gap-3">
-                                    <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-(--border) bg-(--background) text-sm font-bold text-(--accent)">
-                                        {api.color}
+
+                        {filteredApis.map((api) => {
+                            const isSaved = savedApis.some(
+                                (item) => item.name === api.name
+                            );
+
+                            return (
+                                <div
+                                    key={api.name}
+                                    className="flex min-h-64 flex-col rounded-2xl border border-(--border) bg-(--surface) p-5 transition duration-200 hover:-translate-y-1 hover:border-(--accent)"
+                                >
+                                    <div className="mb-5 flex items-start justify-between gap-3">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-(--border) bg-(--background) text-sm font-bold text-(--accent)">
+                                            {api.color}
+                                        </div>
+
+                                        <div className="flex items-center gap-2">
+                                            <span className="rounded-full border border-(--border) px-3 py-1 text-xs text-(--muted)">
+                                                {api.pricing}
+                                            </span>
+
+                                            <button
+                                                type="button"
+                                                disabled={!savedReady}
+                                                onClick={() => toggleSavedApi(api)}
+                                                aria-label={isSaved ? "Remove saved API" : "Save API"}
+                                                title={isSaved ? "Remove from saved APIs" : "Save API"}
+                                                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-all duration-200 ${isSaved
+                                                        ? "border-(--accent) bg-(--accent)/10 text-(--accent)"
+                                                        : "border-(--border) bg-(--background) text-(--muted) hover:border-(--accent) hover:text-(--accent)"
+                                                    }`}
+                                            >
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    width="18"
+                                                    height="18"
+                                                    viewBox="0 0 24 24"
+                                                    fill={isSaved ? "currentColor" : "none"}
+                                                    stroke="currentColor"
+                                                    strokeWidth="1.8"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                >
+                                                    <path d="M6 4.75A1.75 1.75 0 0 1 7.75 3h8.5A1.75 1.75 0 0 1 18 4.75V21l-6-4-6 4z" />
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </div>
 
-                                    <span className="rounded-full border border-(--border) px-3 py-1 text-xs text-(--muted)">
-                                        {api.pricing}
-                                    </span>
+                                    <Link
+                                        href={`/cards?name=${encodeURIComponent(api.name)}`}
+                                        className="flex flex-1 flex-col"
+                                    >
+                                        <h2 className="text-lg font-semibold">
+                                            {api.name}
+                                        </h2>
+
+                                        <p className="mt-2 flex-1 text-sm leading-6 text-(--muted)">
+                                            {api.description}
+                                        </p>
+
+                                        <div className="mt-5 flex flex-wrap gap-2">
+                                            <span className="rounded-md bg-(--background) px-2.5 py-1 text-xs text-(--muted)">
+                                                {api.category}
+                                            </span>
+
+                                            <span className="rounded-md bg-(--background) px-2.5 py-1 text-xs text-(--muted)">
+                                                {api.auth}
+                                            </span>
+                                        </div>
+
+                                        <div className="mt-5 border-t border-(--border) pt-4">
+                                            <span className="inline-flex items-center gap-2 text-sm font-semibold text-(--accent)">
+                                                View documentation <span aria-hidden="true">↗</span>
+                                            </span>
+                                        </div>
+                                    </Link>
                                 </div>
+                            );
+                        })}
 
-                                <h2 className="text-lg font-semibold">
-                                    {api.name}
-                                </h2>
-
-                                <p className="mt-2 flex-1 text-sm leading-6 text-(--muted)">
-                                    {api.description}
-                                </p>
-
-                                <div className="mt-5 flex flex-wrap gap-2">
-                                    <span className="rounded-md bg-(--background) px-2.5 py-1 text-xs text-(--muted)">
-                                        {api.category}
-                                    </span>
-
-                                    <span className="rounded-md bg-(--background) px-2.5 py-1 text-xs text-(--muted)">
-                                        {api.auth}
-                                    </span>
-                                </div>
-
-                                <div className="mt-5 border-t border-(--border) pt-4">
-                                    <span className="inline-flex items-center gap-2 text-sm font-semibold text-(--accent)">
-                                        View documentation <span aria-hidden="true">↗</span>
-                                    </span>
-                                </div>
-                            </Link>
-                        ))}
                     </div>
                 ) : (
                     <div className="rounded-2xl border border-dashed border-(--border) px-5 py-16 text-center">

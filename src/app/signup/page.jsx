@@ -19,6 +19,7 @@ function AuthPageContent() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
+
   function saveLogin(data) {
     if (data.token) {
       localStorage.setItem("apicosmos-token", data.token);
@@ -29,8 +30,14 @@ function AuthPageContent() {
     }
 
     window.dispatchEvent(new Event("apicosmos-auth-change"));
-    router.push("/");
+
+    if (data.user?.role === "admin") {
+      router.replace("/admin");
+    } else {
+      router.replace("/dashboard");
+    }
   }
+
 
   async function handleSubmit(event) {
     event.preventDefault();

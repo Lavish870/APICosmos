@@ -11,6 +11,45 @@ export default function CardsPage() {
   const [api, setApi] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [savedApis, setSavedApis] = useState([]);
+  const [savedReady, setSavedReady] = useState(false);
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(
+        localStorage.getItem("apicosmos-saved-apis") || "[]"
+      );
+
+      setSavedApis(Array.isArray(saved) ? saved : []);
+    } catch {
+      setSavedApis([]);
+    }
+
+    setSavedReady(true);
+  }, []);
+
+  const isSaved = savedApis.some(
+    (item) => item.name === api?.name
+  );
+
+  function toggleSavedApi() {
+    if (!api) return;
+
+    const alreadySaved = savedApis.some(
+      (item) => item.name === api.name
+    );
+
+    const updated = alreadySaved
+      ? savedApis.filter((item) => item.name !== api.name)
+      : [...savedApis, api];
+
+    setSavedApis(updated);
+
+    localStorage.setItem(
+      "apicosmos-saved-apis",
+      JSON.stringify(updated)
+    );
+  }
 
   useEffect(() => {
     const apiName = searchParams.get("name");
@@ -37,18 +76,44 @@ export default function CardsPage() {
         const result = await response.json();
 
         if (!response.ok) {
-          throw new Error(result.message || "Failed to fetch API details.");
+          throw new Error(
+            result.message || "Failed to fetch API details."
+          );
         }
 
         if (!cancelled) {
           setApi(result.data);
+
+          try {
+            const history = JSON.parse(
+              localStorage.getItem("apicosmos-view-history") || "[]"
+            );
+
+            const previousHistory = Array.isArray(history) ? history : [];
+
+            const updatedHistory = [
+              result.data,
+              ...previousHistory.filter(
+                (item) => item.name !== result.data.name
+              ),
+            ].slice(0, 10);
+
+            localStorage.setItem(
+              "apicosmos-view-history",
+              JSON.stringify(updatedHistory)
+            );
+          } catch (historyError) {
+            console.error("Could not save viewing history:", historyError);
+          }
         }
       } catch (err) {
         console.error("Error fetching API details:", err);
 
         if (!cancelled) {
           setApi(null);
-          setError("API details load nahi ho paayi. Please try again.");
+          setError(
+            "API details load nahi ho paayi. Please try again."
+          );
         }
       } finally {
         if (!cancelled) {
@@ -84,7 +149,9 @@ export default function CardsPage() {
           </div>
         ) : error ? (
           <div className="mt-8 rounded-2xl border border-(--border) bg-(--surface) px-5 py-16 text-center">
-            <h1 className="text-2xl font-bold">Unable to load API</h1>
+            <h1 className="text-2xl font-bold">
+              Unable to load API
+            </h1>
 
             <p className="mt-3 text-sm leading-6 text-(--muted)">
               {error}
@@ -99,8 +166,9 @@ export default function CardsPage() {
           </div>
         ) : api ? (
           <div className="mt-8 rounded-2xl border border-(--border) bg-(--surface) p-6 sm:p-9">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
+            {/* API heading and actions */}
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0 flex-1">
                 <p className="mb-3 text-xs font-bold tracking-[0.2em] text-(--muted)">
                   API DETAILS
                 </p>
@@ -114,9 +182,38 @@ export default function CardsPage() {
                 </p>
               </div>
 
-              <span className="rounded-full border border-(--border) px-4 py-2 text-sm text-(--accent)">
-                {api.pricing}
-              </span>
+              {/* Pricing and bookmark stay together on the right */}
+              <div className="flex shrink-0 items-center gap-2">
+                <span className="whitespace-nowrap rounded-full border border-(--border) px-3 py-2 text-xs text-(--accent) sm:px-4 sm:text-sm">
+                  {api.pricing}
+                </span>
+
+                <button
+                  type="button"
+                  disabled={!savedReady}
+                  onClick={toggleSavedApi}
+                  title={isSaved ? "Remove from saved APIs" : "Save API"}
+                  aria-label={isSaved ? "Unsave API" : "Save API"}
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-all duration-200 sm:h-11 sm:w-11 ${isSaved
+                    ? "border-(--accent) bg-(--accent)/10 text-(--accent)"
+                    : "border-(--border) bg-(--background) text-(--muted) hover:border-(--accent) hover:text-(--accent)"
+                    } disabled:opacity-50`}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill={isSaved ? "currentColor" : "none"}
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M6 4.75A1.75 1.75 0 0 1 7.75 3h8.5A1.75 1.75 0 0 1 18 4.75V21l-6-4-6 4z" />
+                  </svg>
+                </button>
+              </div>
             </div>
 
             <div className="mt-8 grid gap-4 sm:grid-cols-2">
