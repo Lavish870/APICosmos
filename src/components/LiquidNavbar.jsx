@@ -105,14 +105,44 @@ function ThemeToggle({ theme, onChange }) {
 
 export default function LiquidNavbar() {
     const pathname = usePathname();
+
     const [theme, setTheme] = useState("system");
     const [menuOpen, setMenuOpen] = useState(false);
+    const [user, setUser] = useState(null);
+    const [profileOpen, setProfileOpen] = useState(false);
+
     const navRef = useRef(null);
     const pillRef = useRef(null);
     const buttonRefs = useRef([]);
 
     useEffect(() => {
-        const savedTheme = localStorage.getItem("apicosmos-theme") || "system";
+        function loadUser() {
+            const savedUser = localStorage.getItem("apicosmos-user");
+
+            if (savedUser) {
+                try {
+                    setUser(JSON.parse(savedUser));
+                } catch {
+                    localStorage.removeItem("apicosmos-user");
+                    setUser(null);
+                }
+            } else {
+                setUser(null);
+            }
+        }
+
+        loadUser();
+
+        window.addEventListener("apicosmos-auth-change", loadUser);
+
+        return () => {
+            window.removeEventListener("apicosmos-auth-change", loadUser);
+        };
+    }, []);
+
+    useEffect(() => {
+        const savedTheme =
+            localStorage.getItem("apicosmos-theme") || "system";
 
         setTheme(savedTheme);
         applyTheme(savedTheme);
@@ -120,7 +150,10 @@ export default function LiquidNavbar() {
         const media = window.matchMedia("(prefers-color-scheme: dark)");
 
         function handleSystemTheme() {
-            if ((localStorage.getItem("apicosmos-theme") || "system") === "system") {
+            if (
+                (localStorage.getItem("apicosmos-theme") || "system") ===
+                "system"
+            ) {
                 applyTheme("system");
             }
         }
@@ -134,11 +167,13 @@ export default function LiquidNavbar() {
 
     useEffect(() => {
         setMenuOpen(false);
+        setProfileOpen(false);
     }, [pathname]);
 
     useEffect(() => {
         function updatePill() {
-            const activePath = pathname === "/cards" ? "/explore" : pathname;
+            const activePath =
+                pathname === "/cards" ? "/explore" : pathname;
 
             const index = navItems.findIndex(
                 (item) => item.href === activePath
@@ -157,7 +192,9 @@ export default function LiquidNavbar() {
 
         window.addEventListener("resize", updatePill);
 
-        return () => window.removeEventListener("resize", updatePill);
+        return () => {
+            window.removeEventListener("resize", updatePill);
+        };
     }, [pathname]);
 
     function applyTheme(selectedTheme) {
@@ -202,14 +239,27 @@ export default function LiquidNavbar() {
         navRef.current.style.setProperty("--mouse-y", "-200px");
     }
 
-
     function closeMenu() {
         setMenuOpen(false);
     }
 
+    function logout() {
+        localStorage.removeItem("apicosmos-user");
+        setUser(null);
+        setProfileOpen(false);
+        setMenuOpen(false);
+
+        window.dispatchEvent(new Event("apicosmos-auth-change"));
+        window.location.href = "/";
+    }
+
     return (
         <header className="apicosmos-header">
-            <Link href="/" className="apicosmos-brand" aria-label="APICosmos home">
+            <Link
+                href="/"
+                className="apicosmos-brand"
+                aria-label="APICosmos home"
+            >
                 <span className="brand-symbol">
                     <Icon size={25}>
                         <circle cx="12" cy="12" r="3" />
@@ -270,7 +320,9 @@ export default function LiquidNavbar() {
                 <button
                     type="button"
                     className="liquid-menu-trigger"
-                    aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
+                    aria-label={
+                        menuOpen ? "Close navigation menu" : "Open navigation menu"
+                    }
                     aria-expanded={menuOpen}
                     onClick={() => setMenuOpen((open) => !open)}
                 >
@@ -294,21 +346,41 @@ export default function LiquidNavbar() {
                         Categories <span>↗</span>
                     </Link>
 
-                    <Link href="/submit" onClick={closeMenu}>
-                        Submit an API <span>↗</span>
-                    </Link>
+                    {user ? (
+                        <>
+                            <Link href="/submit" onClick={closeMenu}>
+                                Add Your API <span>＋</span>
+                            </Link>
 
-                    <Link href="/dashboard" onClick={closeMenu}>
-                        Dashboard <span>↗</span>
-                    </Link>
+                            <Link href="/dashboard" onClick={closeMenu}>
+                                My Dashboard <span>↗</span>
+                            </Link>
 
-                    <Link href="/login" onClick={closeMenu}>
-                        Log in <span>↗</span>
-                    </Link>
+                            <Link href="/profile" onClick={closeMenu}>
+                                Profile <span>↗</span>
+                            </Link>
 
-                    <Link href="/signup" onClick={closeMenu}>
-                        Create account <span>↗</span>
-                    </Link>
+                            <Link href="/saved" onClick={closeMenu}>
+                                Saved APIs <span>↗</span>
+                            </Link>
+
+                            <Link href="/history" onClick={closeMenu}>
+                                History <span>↗</span>
+                            </Link>
+
+                            <button
+                                type="button"
+                                className="mobile-logout-button"
+                                onClick={logout}
+                            >
+                                Logout <span>↗</span>
+                            </button>
+                        </>
+                    ) : (
+                        <Link href="/signup" onClick={closeMenu}>
+                            Create account <span>↗</span>
+                        </Link>
+                    )}
 
                     <div className="dropdown-theme">
                         <span>Appearance</span>
@@ -317,9 +389,109 @@ export default function LiquidNavbar() {
                 </div>
             </nav>
 
-            <Link href="/signup" className="navbar-signup">
-                Sign up <span aria-hidden="true">↗</span>
-            </Link>
+            {user ? (
+                <>
+                    <div className="navbar-account">
+                        <button
+                            type="button"
+                            className="navbar-signup"
+                            onClick={() => setProfileOpen((open) => !open)}
+                            aria-expanded={profileOpen}
+                        >
+                            <span className="account-avatar">
+                                {(user.name || user.email || "U")
+                                    .charAt(0)
+                                    .toUpperCase()}
+                            </span>
+
+                            <span>{user.name || "My Account"}</span>
+                            <span aria-hidden="true">
+                                {profileOpen ? "⌃" : "⌄"}
+                            </span>
+                        </button>
+
+                        {profileOpen && (
+                            <div className="account-dropdown">
+                                <p className="account-dropdown-name">
+                                    {user.name || "My Account"}
+                                </p>
+
+                                <p className="account-dropdown-email">
+                                    {user.email}
+                                </p>
+
+                                <Link
+                                    href="/submit"
+                                    onClick={() => setProfileOpen(false)}
+                                >
+                                    <Icon size={17}>
+                                        <path d="M12 5v14M5 12h14" />
+                                    </Icon>
+                                    Add Your API
+                                </Link>
+
+                                <Link
+                                    href="/profile"
+                                    onClick={() => setProfileOpen(false)}
+                                >
+                                    <Icon size={17}>
+                                        <circle cx="12" cy="8" r="4" />
+                                        <path d="M5 21v-2a7 7 0 0 1 14 0v2" />
+                                    </Icon>
+                                    Profile
+                                </Link>
+
+                                <Link
+                                    href="/dashboard"
+                                    onClick={() => setProfileOpen(false)}
+                                >
+                                    <Icon size={17}>
+                                        <rect x="3" y="3" width="8" height="8" rx="1" />
+                                        <rect x="13" y="3" width="8" height="5" rx="1" />
+                                        <rect x="13" y="10" width="8" height="11" rx="1" />
+                                        <rect x="3" y="13" width="8" height="8" rx="1" />
+                                    </Icon>
+                                    My Dashboard
+                                </Link>
+
+                                <Link
+                                    href="/saved"
+                                    onClick={() => setProfileOpen(false)}
+                                >
+                                    <Icon size={17}>
+                                        <path d="M6 3h12v18l-6-4-6 4z" />
+                                    </Icon>
+                                    Saved APIs
+                                </Link>
+
+                                <Link
+                                    href="/history"
+                                    onClick={() => setProfileOpen(false)}
+                                >
+                                    <Icon size={17}>
+                                        <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+                                        <path d="M3 3v5h5m4-1v5l3 2" />
+                                    </Icon>
+                                    History
+                                </Link>
+
+                                <button type="button" onClick={logout}>
+                                    <Icon size={17}>
+                                        <path d="M10 17l5-5-5-5" />
+                                        <path d="M15 12H3" />
+                                        <path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6" />
+                                    </Icon>
+                                    Logout
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </>
+            ) : (
+                <Link href="/signup" className="navbar-signup">
+                    Sign up <span aria-hidden="true">↗</span>
+                </Link>
+            )}
         </header>
     );
 }
