@@ -7,7 +7,7 @@ import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import LiquidNavbar from "../../components/LiquidNavbar";
 import "./page.css";
 
-const API_BASE_URL = "http://localhost:5000/api/auth";
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api/auth`;
 
 function AuthPageContent() {
   const router = useRouter();

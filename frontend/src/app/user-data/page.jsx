@@ -56,14 +56,13 @@ export default function UserDataPage() {
                 }
 
                 const response = await fetch(
-                    "http://localhost:5000/api/apis/mine",
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/apis/mine`,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`,
                         },
                     }
                 );
-
                 const result = await response.json();
 
                 if (!response.ok || !result.success) {

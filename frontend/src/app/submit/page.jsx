@@ -62,14 +62,17 @@ export default function SubmitPage() {
     try {
       setLoading(true);
 
-      const response = await fetch("http://localhost:5000/api/apis", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(form),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/apis`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(form),
+        }
+      );
 
       const result = await response.json();
 
@@ -252,11 +255,10 @@ export default function SubmitPage() {
                 <div
                   role="status"
                   aria-live="polite"
-                  className={`mt-6 rounded-xl border p-4 text-sm ${
-                    messageType === "success"
+                  className={`mt-6 rounded-xl border p-4 text-sm ${messageType === "success"
                       ? "border-green-500/40 bg-green-500/10 text-green-600"
                       : "border-red-500/40 bg-red-500/10 text-red-500"
-                  }`}
+                    }`}
                 >
                   {message}
 

@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import LiquidNavbar from "@/components/LiquidNavbar";
 
-const API_BASE = "http://localhost:5000/api/admin";
+const API_BASE = `${process.env.NEXT_PUBLIC_API_URL}/api/admin`;
 
 const tabs = [
     { id: "overview", label: "Overview", icon: "▦" },

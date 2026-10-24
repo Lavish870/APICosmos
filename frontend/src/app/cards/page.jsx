@@ -70,7 +70,7 @@ function CardsContent() {
         setApi(null);
 
         const response = await fetch(
-          `http://localhost:5000/api/apis/name/${encodeURIComponent(apiName)}`
+          `${process.env.NEXT_PUBLIC_API_URL}/api/apis/name/${encodeURIComponent(apiName)}`
         );
 
         const result = await response.json();
