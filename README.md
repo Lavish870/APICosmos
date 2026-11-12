@@ -35,18 +35,16 @@ Users can explore available APIs, discover them by category, save their favourit
 
 **The idea:** Build more than a simple API listing website. Create a complete application with authentication, database integration, role-based access, and a polished user experience.
 
-## 🎨 Design Philosophy
+## 🎨 Design Philosophy — Two Sides of the Omnitrix
 
-APICosmos takes visual inspiration from the **Ben 10 universe**, translating its distinctive colour identity into a modern web interface.
+APICosmos draws its visual identity from the **Ben 10 universe**, bringing two contrasting sides of the Omnitrix into a modern developer platform.
 
-| Theme | Visual identity |
-|---|---|
-| ☀️ Light Mode | Ben 10-inspired green, white, and black |
-| 🌙 Dark Mode | Bold red and black |
+- 💚 **Light Mode — The Hero:** Inspired by Ben Tennyson's iconic green Omnitrix, combining vibrant green, white, and black for a clean, energetic interface.
+- ❤️ **Dark Mode — The Villain:** Inspired by the villainous, red Omnitrix aesthetic from the Ben 10 universe, featuring striking red accents against deep black backgrounds.
 
-The interface combines strong contrast, modern layouts, subtle visual effects, and a consistent design language.
+**Two themes. Two identities. One universe.**
 
-The goal was to make the experience feel recognisable without sacrificing usability.
+Rather than simply switching between light and dark colours, APICosmos uses its themes to express two distinct personalities inspired by the same fictional universe.
 
 ## 🔐 Authentication Experience
 
